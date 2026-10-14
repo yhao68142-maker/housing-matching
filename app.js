@@ -3,6 +3,16 @@ const $=id=>document.getElementById(id),db=HOUSING_DATA.records,keys=HousingMatc
 const labels={length:'长度',width:'宽度',stepHeight:'台阶高',stepLength:'台阶长'};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Number.isFinite(n)?Number(n.toFixed(3)).toString():'—';
+const localFile=location.protocol==='file:';
+function showLocalHelp(){
+ $('file-status').textContent='当前打开的是本地 HTML 文件，浏览器不允许在此模式下解析模型。请打开在线版重新选择零件；也可继续手动输入尺寸。';
+}
+if(localFile){
+ const notice=document.createElement('aside');notice.className='note';notice.setAttribute('role','status');
+ notice.innerHTML='<strong>你正在使用本地文件版</strong><p>自动测量需要通过网页地址打开。手动尺寸匹配和内置数据库仍可使用。</p><a class="primary" style="display:inline-block;width:auto;margin:0" href="https://yhao68142-maker.github.io/housing-matching/">打开在线版，上传零件 →</a>';
+ document.querySelector('main').prepend(notice);
+ $('file').disabled=true;$('unit').disabled=true;showLocalHelp();
+}
 let results=[],query={},worker=null,token=0,box=null,edges=[],rotation=[-.5,.5],lastFile=null;
 $('total').textContent=db.length;
 function renderDB(){let q=$('search').value.trim().toLowerCase();let rows=db.filter(r=>(r.model+' '+r.part).toLowerCase().includes(q)&&(!$('flagged').checked||r.warnings.length));$('db-count').textContent=rows.length+' / '+db.length+' 条';$('db-body').innerHTML=rows.map(r=>`<tr><td><strong>${esc(r.model)}</strong><details><summary>${esc(r.part)}</summary><pre>${esc(r.raw)}</pre>${r.warnings.map(w=>`<p class="warning">${esc(w)}</p>`).join('')}</details></td>${keys.map(k=>`<td>${fmt(r[k])}</td>`).join('')}<td>${r.sourceRow}${r.warnings.length?' · 待核对':''}</td></tr>`).join('')||'<tr><td colspan="6">没有符合条件的记录</td></tr>';}
@@ -17,7 +27,7 @@ function csvCell(v){let s=String(v??'');if(/^[=+@\-]/.test(s)&&!Number.isFinite(
 $('export').onclick=()=>{const rows=[['排名','机种','零件','尺寸接近分','覆盖率%','原表行',...keys.map(k=>'输入'+labels[k]),...keys.map(k=>'库值'+labels[k]),...keys.map(k=>'差值'+labels[k]),'待核对']];results.forEach((r,i)=>rows.push([i+1,r.record.model,r.record.part,r.score.toFixed(2),r.coverage,r.record.sourceRow,...keys.map(k=>query[k]),...keys.map(k=>r.record[k]),...keys.map(k=>r.deltas[k]),r.record.warnings.join('；')]));const u=URL.createObjectURL(new Blob(['\ufeff'+rows.map(r=>r.map(csvCell).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=u;a.download='Housing匹配结果.csv';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);};
 function stop(){token++;if(worker)worker.terminate();worker=null;$('cancel').hidden=true;$('match').disabled=false;}
 function clearModel(){box=null;edges=[];$('geometry').hidden=true;keys.forEach(k=>$(k).value='');invalidate();}
-async function loadFile(file){stop();clearModel();if(!file)return;lastFile=file;const ext=file.name.split('.').pop().toLowerCase();$('file-status').textContent=file.name;
+async function loadFile(file){if(localFile){showLocalHelp();return;}stop();clearModel();if(!file)return;lastFile=file;const ext=file.name.split('.').pop().toLowerCase();$('file-status').textContent=file.name;
  if(ext==='sldprt'){$('file-status').textContent='此版本不能直接读取 SLDPRT。请在 SolidWorks 中另存为 STEP 后重新选择，或手动输入尺寸。';return;}
  if(!['step','stp','stl'].includes(ext)){$('file-status').textContent='不支持该格式，请选择 STEP / STP / STL。';return;}
  if(file.size>30*1024*1024||!file.size){$('file-status').textContent='请选择非空且不超过 30 MB 的文件。';return;}
