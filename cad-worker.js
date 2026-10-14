@@ -1,4 +1,5 @@
 importScripts('matcher.js');
+importScripts('step-features.js');
 self.onmessage=async({data})=>{try{
  let meshes;
  if(data.ext==='stl'){const a=HousingMatcher.parseSTL(data.buffer).map(x=>x*data.scale);meshes=[{attributes:{position:{array:a}},index:null}];}
@@ -6,5 +7,6 @@ self.onmessage=async({data})=>{try{
  const box=HousingMatcher.bounds(meshes.map(m=>m.attributes.position.array));const edges=[];
  let budget=4500;
  for(const m of meshes){const a=m.attributes.position.array,idx=m.index?.array;const n=idx?idx.length/3:a.length/9;const stride=Math.max(1,Math.ceil(n/Math.max(1,budget)));for(let t=0;t<n&&budget>0;t+=stride,budget--){for(const v of [0,1,1,2,2,0]){let i=(idx?idx[t*3+v]:t*3+v)*3;edges.push(a[i],a[i+1],a[i+2]);}}}
- postMessage({box,edges,meshes:meshes.length});
+ const planes=data.ext==='stl'?[]:StepFeatures.extractPlanes(meshes);
+ postMessage({box,edges,meshes:meshes.length,planes,format:data.ext});
 }catch(e){postMessage({error:e.message||'解析失败'});}};
