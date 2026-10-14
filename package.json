@@ -1,0 +1,1 @@
+{"name":"housing-matching","version":"1.0.0","private":true,"scripts":{"test":"node --test tests/*.cjs","build":"node scripts/build.cjs"},"dependencies":{"occt-import-js":"0.0.23"}}
