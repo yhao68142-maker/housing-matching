@@ -47,7 +47,7 @@ location /api/ {
 
 `ALLOWED_ORIGINS` 必须包含网页来源 `https://yhao68142-maker.github.io`（不带仓库路径）。新增域名时同步修改。后台并不信任转发 IP 请求头；代理后的登录限流会共享代理 IP。生产代理应额外按真实客户端 IP 对 `/api/login` 限流。
 
-后台 `/api/health` 正常后，设置源码 `cloud-config.js` 中 `HOUSING_API_URL` 为真实 HTTPS API 地址，再提交到 GitHub。页面会自动加载云端库取代内置匹配库。新后台首次启动导入原有 141 条记录；不会在重启时重复导入，也不会恢复已删除记录。
+后台 `/api/health` 正常后，设置源码 `cloud-config.js` 中 `HOUSING_API_URL` 为真实 HTTPS API 地址，并更新 index.html 中 cloud-config.js 的版本参数，再提交到 GitHub。页面会自动加载云端库取代内置匹配库。新后台首次启动导入原有 141 条记录；不会在重启时重复导入，也不会恢复已删除记录。
 
 ## 用户与使用
 
