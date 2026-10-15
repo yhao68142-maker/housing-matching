@@ -1,0 +1,13 @@
+services:
+  api:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8787:8787"
+    environment:
+      DATA_DIR: /data
+      ALLOWED_ORIGINS: https://yhao68142-maker.github.io
+    volumes:
+      - housing-data:/data
+volumes:
+  housing-data:

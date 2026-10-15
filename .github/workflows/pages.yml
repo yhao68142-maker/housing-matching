@@ -24,6 +24,12 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts
       - run: npm test
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r backend/requirements.txt
+      - run: python -m unittest -v test_api.py
+        working-directory: backend
       - run: npm run build
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

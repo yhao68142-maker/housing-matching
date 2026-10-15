@@ -6,3 +6,9 @@ dist/
 *.step
 *.stp
 *.STP
+data/
+*.sqlite3*
+__pycache__/
+.venv/
+.env
+backups/
