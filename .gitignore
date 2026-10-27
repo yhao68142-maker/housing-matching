@@ -12,3 +12,6 @@ __pycache__/
 .venv/
 .env
 backups/
+offline-build/
+offline-work/
+Housing-Offline-Windows.zip

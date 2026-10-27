@@ -11,7 +11,31 @@ concurrency:
   group: pages
   cancel-in-progress: true
 jobs:
+  offline:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci --ignore-scripts
+      - run: npm run build
+      - run: python -m unittest discover -s offline -p "test_*.py" -v
+      - run: pip install pyinstaller==6.22.3
+      - run: python scripts/build-offline.py
+      - name: Check packaged launcher
+        run: python -c "import subprocess; subprocess.run(['offline-build/Housing-Offline/Housing-Offline.exe','--self-test'],check=True,timeout=60)"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-offline
+          path: Housing-Offline-Windows.zip
+          retention-days: 5
   deploy:
+    needs: offline
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -31,6 +55,10 @@ jobs:
       - run: python -m unittest -v test_api.py
         working-directory: backend
       - run: npm run build
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-offline
+          path: dist/offline
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
